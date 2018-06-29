@@ -16,7 +16,7 @@
 # aswell as where my python scripts live.
 nt_path=/home1/boyd01z/db/nt_db
 nr_path=/home1/boyd01z/db/nr_db
-python_scripts=/home1/boyd01z/PythonScripts
+python_bin=/home1/boyd01z/PythonScripts
 
 # Make the database directories.
 mkdir -p $nt_path
@@ -73,16 +73,21 @@ tar -zcvf $nt_path".tar.gz" $nt_path && rm -rf $nt_path
 # Build a blast db of other seqs.
 echo "Building a blastdb of other seqs...."
 makeblastdb -in $other_path"/other.fasta" -out $other_path"/db_other" -dbtype nucl
+echo "Building a blastdb of env seqs...."
+makeblastdb -in $env_path"/environmental.fasta" -out $env_path"/db_environmental" -dbtype nucl
+echo "Building a blastdb of phage seqs...."
+makeblastdb -in $phage_path"/phages.fasta" -out $phage_path"/db_phages" -dbtype nucl
+echo "Built blastdbs"
 
 ## Blast seqs against other.
 blast_output=$(dirname $nt_path)"/blast_results"
 mkdir -p $blast_output
-# Viruses
+# Viruses VS Other
 blastn -query $virus_path"/virus.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/other_vs_viruses.txt" -outfmt 6
-# Phages
-blastn -query $phage_path"/phage.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/other_vs_phages.txt" -outfmt 6
-# Environmental
-blastn -query $env_path"/environmental.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/env_vs_viruses.txt" -outfmt 6
+# Viruses VS Phages
+blastn -query $virus_path"/virus.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $phage_path"/db_phage" -out $blast_output"/other_vs_phages.txt" -outfmt 6
+# Viruses VS Environmental
+blastn -query $virus_path"/virus.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $env_path"/db_environmental" -out $blast_output"/env_vs_viruses.txt" -outfmt 6
 ##
 
 # Compress all the subdirectories as they're no longer needed.
