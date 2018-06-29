@@ -29,7 +29,7 @@ for i in $(ls | grep .tar.gz); do tar -xvf $i; rm -f $i; done
 
 # Pull out all of the sequences used to generate the database into file 'nt.fasta'
 blastdbcmd -entry all -db nt -out nt.fasta
-cd $(basename $nt_path)
+cd $(dirname $nt_path)
 
 # Pull all the relevant files from ncbi. i.e tax2id, division, and nodes.dmp
 wget "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz"
@@ -52,21 +52,45 @@ grep "ENVIRONMENTAL" $file >> environmental_seqs/environmental_id.txt
 cat $file | grep -v "PHAGE" | grep -v "VIRUS" | grep -v "ENVIRONMENTAL" >> other_seqs/other_id.txt
 tar -cvf ${file%.txt}".tar" $file
 
+# Make some variables for the locations of the new created directories.
+other_path=$(dirname $nt_path)"/other_seqs"
+phage_path=$(dirname $nt_path)"/phage_seqs"
+env_path=$(dirname $nt_path)"/environmental_seqs"
+virus_path=$(dirname $nt_path)"/virus_seqs"
+
 # Take the identifier files, then use this information to pull out their seqs from the big
-# fasta file. This is run in each sub-directory. The fasta can be compressed after this.
-# The blast database can also be constructed from each resulting fasta file in this for loop.
+# fasta file. This is run in each sub-directory.
 for i in $(ls -d */ | grep _seqs); do
 	cd $i
 	python $python_bin"/pull_seqs.py" --fasta $nt_path"/nt.fasta" --accession ${i%_seqs}"_id.txt" --output ${i%_seqs}".fasta"
-	cd $(basename $nt_path)
+	cd $(dirname $nt_path)
 done
-tar -cvf $nt_path"/nt.fasta.tar" $nt_path"/nt.fasta" && rm -f $nt_path"/nt.fasta"
 
+# Compress nt_db as it is no longer needed.
+echo "Compressing nt_db....."
+tar -zcvf $nt_path".tar.gz" $nt_path && rm -rf $nt_path
 
-#MAKE BLAST DB, OTHER SEQS
-#BLASTN VIRUSES AGAINST IT
-# " PHAGES
-# " ENV 
+# Build a blast db of other seqs.
+echo "Building a blastdb of other seqs...."
+makeblastdb -in $other_path"/other.fasta" -out $other_path"/db_other" -dbtype nucl
+
+## Blast seqs against other.
+blast_output=$(dirname $nt_path)"/blast_results"
+mkdir -p $blast_output
+# Viruses
+blastn -query $virus_path"/virus.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/other_vs_viruses.txt" -outfmt 6
+# Phages
+blastn -query $phage_path"/phage.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/other_vs_phages.txt" -outfmt 6
+# Environmental
+blastn -query $env_path"/environmental.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $other_path"/db_other" -out $blast_output"/env_vs_viruses.txt" -outfmt 6
+##
+
+# Compress all the subdirectories as they're no longer needed.
+tar -zcvf $other_path".tar.gz" $other_path && rm -rf $other_path
+tar -zcvf $phage_path".tar.gz" $phage_path && rm -rf $phage_path
+tar -zcvf $env_path".tar.gz" $env_path && rm -rf $env_path
+tar -zcvf $virus_path".tar.gz" $virus_path && rm -rf $virus_path
+
 
 
 
