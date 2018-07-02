@@ -76,7 +76,7 @@ makeblastdb -in $other_path"/other.fasta" -out $other_path"/db_other" -dbtype nu
 echo "Building a blastdb of env seqs...."
 makeblastdb -in $env_path"/environmental.fasta" -out $env_path"/db_environmental" -dbtype nucl
 echo "Building a blastdb of phage seqs...."
-makeblastdb -in $phage_path"/phages.fasta" -out $phage_path"/db_phages" -dbtype nucl
+makeblastdb -in $phage_path"/phage.fasta" -out $phage_path"/db_phage" -dbtype nucl
 echo "Built blastdbs"
 
 ## Blast seqs against other.

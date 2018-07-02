@@ -15,5 +15,8 @@ The ``blast_seqs.sh`` script follows this workflow:
 8. Blast all viral sequences against this new blast database to determine if any viral sequences were in other samples.  
   
   
-_n.b: other samples consist of divisions: bacteria, invertebrate, mammal, plants & fungi, primates, rodent, unassigned, vertebrate, and synthetic and chimeric sequences._
+_n.b: other samples consist of divisions: bacteria, invertebrate, mammal, plants & fungi, primates, rodent, unassigned, vertebrate, and synthetic and chimeric sequences._  
+_Author: Zack Boyd_
+
+
 
