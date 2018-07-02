@@ -1,5 +1,5 @@
 ### _hives_pipeline_  
-A bash / python pipeline which was desinged to check if any viral sequences in the NT database contain errorenous pieces of non-viral sequences (such as host ribosomes). HIVEs also separates the NT and NR sequences into viral and non-viral to create BLAST databases for viral metagenomic analyses.
+A bash / python pipeline which was desinged to check if any viral sequences in the NT database contain errorenous pieces of non-viral sequences (such as host ribosomes). HIVEs also separates the NT and NR sequences into viral and non-viral sections to create BLAST databases for viral metagenomic analyses.
 
 #### _hives workflow_ 
 The ``blast_seqs.sh`` script follows this workflow:  
