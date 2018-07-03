@@ -35,15 +35,17 @@ cd $(dirname $nt_path)
 mkdir -p accession2taxid_files
 wget "ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz"
 wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/nucl_gb.accession2taxid.gz
-for i in $(ls | grep .tar.gz); do tar -xvf $i; rm -f $i; done
+mkdir new_taxdump
+tar -xvf new_taxdump.tar.gz -C new_taxdump && rm -rf new_taxdump.tar.gz
 gunzip nucl_gb.accession2taxid.gz
-mv nucl_gb.accession2taxid.gz accession2taxid_files
+mv nucl_gb.accession2taxid accession2taxid_files
 
 # Make seperate directories for each different sample then add a text file to each of them.
-mkdir virus_seqs environmental_seqs other_seqs synthetic_chimeric_seqs
+mkdir virus_seqs other_seqs synthetic_chimeric_seqs
 
 # Generate the converted accession file using a python script. All described with the -h option specified. 
 python $python_bin"/convert_blast.py" --accession "accession2taxid_files/nucl_gb.accession2taxid" --nodes "new_taxdump/nodes.dmp"
+echo "Generated converted accession file: converted_accession_file.txt"
 
 # Pull out the identifier from the converted accession file, which will be used later to get the
 # sequence from the fasta file. Converted accession file can be compressed / removed afterward
@@ -62,7 +64,7 @@ virus_path=$(dirname $nt_path)"/virus_seqs"
 # fasta file. This is run in each sub-directory.
 for i in $(ls -d */ | grep _seqs); do
 	cd $i
-	python $python_bin"/pull_seqs.py" --fasta $nt_path"/nt.fasta" --accession ${i%_seqs}"_id.txt" --output ${i%_seqs}".fasta"
+	python3 $python_bin"/pull_seqs.py" --fasta $nt_path"/nt.fasta" --accession ${i%_seqs}"_id.txt" --output ${i%_seqs}".fasta"
 	cd $(dirname $nt_path)
 done
 
@@ -80,7 +82,7 @@ echo "Built blastdbs"
 ## Blast other seqs against viral db.
 blast_output=$(dirname $nt_path)"/blast_results"
 mkdir -p $blast_output
-blastn -query $other_path"/other.fasta" -evalue 1e-5 -num_alignment 1 -num_threads 12 -db $virus_path"/db_virus" -out $blast_output"/other_in_viruses.txt" -outfmt 6
+blastn -query $other_path"/other.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $virus_path"/db_virus" -out $blast_output"/other_in_viruses.txt" -outfmt 6
 
 # Compress all the subdirectories as they're no longer needed.
 tar -zcvf $other_path".tar.gz" $other_path && rm -rf $other_path
@@ -104,22 +106,24 @@ blastdbcmd -entry all -db nr -out nr.fasta
 
 # cd up one and make relevant subdirectories
 cd $(dirname $nr_path)
-mkdir nr_virus_seqs nr_other_seqs nr_synthetic_chimeric_seqs nr_environmental_seqs
+mkdir nr_virus_seqs nr_other_seqs nr_synthetic_chimeric_seqs
 
 # Get the protein acc2taxid file.
 wget ftp://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/prot.accession2taxid.gz
 gunzip prot.accession2taxid.gz
-mv prot.accession2taxid.gz accession2taxid_files
+mv prot.accession2taxid accession2taxid_files
 
 # Generate the converted accession file.
-python $python_bin"/convert_blast.py" --accession accession2taxid_files/prot.accession2taxid.gz --nodes new_taxdump/nodes.dmp
+python $python_bin"/convert_blast.py" --accession accession2taxid_files/prot.accession2taxid --nodes new_taxdump/nodes.dmp
+mv $file nr_converted_accession_file.txt
+file=nr_converted_accession_file.txt
 
 # Split the converted file into sub files.
 grep "VIRUS" $file >> nr_virus_seqs/virus_id.txt
 grep "PHAGE" $file >> nr_virus_seqs/virus_id.txt
 grep "SYNTHETIC" $file >> nr_synthetic_chimeric_seqs/synthetic_chimeric_id.txt
 cat $file | grep -v "VIRUS" | grep -v "PHAGE" | grep -v "SYNTHETIC" >> nr_other_seqs/other_id.txt
-tar -zcvf $file".tar.gz" $file
+tar -zcvf $file".tar.gz" $file && rm -f $file
 
 # Make vars of above paths
 nr_other_path=$(basename $nr_path)"/nr_other_seqs"
@@ -128,7 +132,7 @@ nr_virus_path=$(basename $nr_path)"/nr_virus_seqs"
 #Pull out the sequences from the big fasta file in each subdir
 for i in $(ls nr_*_seqs); do
 	cd $i
-	python $python_bin"/pull_seqs.py" --fasta $nr_path"/nr.fasta" --accession *_id.txt --output ${i%_seqs}".fasta"
+	python3 $python_bin"/pull_seqs.py" --fasta $nr_path"/nr.fasta" --accession *_id.txt --output ${i%_seqs}".fasta"
 	cd $(dirname $nr_path)
 done
 
