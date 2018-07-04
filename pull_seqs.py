@@ -77,7 +77,7 @@ with open(file_in) as file:
                     print("Processed:\t"+str(int(read + 2))+".\tSequences.")
                     read = read + 2
 
-            print(line,end="",file=out_file)
+            print(line.replace(" ","_"),end="",file=out_file)
 
 print("\nTotal sequences processed:\t"+str(new_count))
 print("\nThat took:\t"+str(datetime.now()-start_time))
