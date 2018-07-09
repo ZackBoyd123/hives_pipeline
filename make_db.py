@@ -29,11 +29,12 @@ with open(args.input) as f:
     for line in data:
 
         query_acc = "".join(line[0].split("|")[3])
-        query_taxid = "".join(line[0].rsplit("|")[-3])
-        query_div = "".join(line[0].rsplit("|")[-2])
+        query_taxid = "".join(line[0].split("|")[4])
+        query_div = "".join(line[0].split("|")[5])
+
         subject_acc = "".join(line[1].split("|")[3])
-        subject_taxid = "".join(line[1].rsplit("|")[-3])
-        subject_div = "".join(line[1].rsplit("|")[-2])
+        subject_taxid = "".join(line[1].split("|")[4])
+        subject_div = "".join(line[1].split("|")[5])
 
         if query_taxid in retro_list:
             is_retro = "YES"

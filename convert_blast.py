@@ -47,13 +47,13 @@ with open(accession_in) as a, open(dump_in) as d:
             elif dump_dict[line[2]] == "3":
                 print(line[1]+"\t"+line[2]+"\t"+"PHAGE")
             elif dump_dict[line[2]] == "4":
-                print(line[1]+"\t"+line[2]+"\t"+"PLANTS & FUNGI")
+                print(line[1]+"\t"+line[2]+"\t"+"PLANTS_&_FUNGI")
             elif dump_dict[line[2]] == "5":
                 print(line[1]+"\t"+line[2]+"\t"+"PRIMATES")
             elif dump_dict[line[2]] == "6":
                 print(line[1]+"\t"+line[2]+"\t"+"RODENT")
             elif dump_dict[line[2]] == "7":
-                print(line[1]+"\t"+line[2]+"\t"+"SYNTHETIC & CHIMERIC")
+                print(line[1]+"\t"+line[2]+"\t"+"SYNTHETIC_&_CHIMERIC")
             elif dump_dict[line[2]] == "8":
                 print(line[1]+"\t"+line[2]+"\t"+"UNASSIGNED")
             elif dump_dict[line[2]] == "9":

@@ -10,10 +10,7 @@ parser.add_argument("--percent", help="The percentage identity between query and
 parser.add_argument("--retro", help="Specify this option with 'yes' if you want to see only retroviruses" +
                     " specifiy with 'no' if you only want to see phages, don't give this flag to command line" +
                     " if you want to see both.\n\n")
-parser.add_argument("--subdiv", help="Show results which match this string. i.e if you wanted to see all " +
-                    "MAMMAL results you would type this in the command line\n\t--subdiv MAMMAL\n" +
-                    "if you wanted to see more than one subject division split the items with a comma and no spaces" +
-                    "\n\t--subdiv MAMMAL,RODENT,BACTERIA\n\t[shows all by default]\n\n")
+parser.add_argument("--subdiv", help="Exclude these divisions in the new file.\n[default=show all]") 
 parser.add_argument("--input", help="Input file", required=True)
 parser.add_argument("--output", help="Output file", required=True)
 args = parser.parse_args()
@@ -45,8 +42,7 @@ else:
 # and make it upper
 #'''
 if args.subdiv == None:
-    subject_division = ["MAMMAL", "RODENT", "PRIMATES", "BACTERIA", "ENVIRONMENTAL", "INVERTEBRATE",
-                        "UNASSIGNED", "PLANTS", "VERTEBRATE"]
+    subject_division = []
 else:
     subject_division = args.subdiv.split(",")
     subject_division = [i.upper() for i in subject_division]
@@ -67,5 +63,5 @@ with open(args.input) as f:
     data = csv.reader(f, delimiter="\t")
     next(data, None)
     for line in data:
-        if float(line[2]) >= percent and line[-2] in subject_division and line[12] in retro:
+        if float(line[2]) >= percent and line[-2] not in subject_division and line[12] in retro:
             print("\t".join(line),file=out_file)
