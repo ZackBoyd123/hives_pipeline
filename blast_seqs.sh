@@ -16,9 +16,9 @@
 # aswell as where my python scripts live.
 nt_path=/home1/boyd01z/db/nt_db
 nr_path=/home1/boyd01z/db/nr_db
-python_bin=/home1/boyd01z/PythonScripts
-
-# Make the database directories.
+python_bin=/home1/boyd01z/RichardWork/blast_pipeline/scripts
+#
+## Make the database directories.
 mkdir -p $nt_path
 mkdir -p $nr_path
 
@@ -44,7 +44,7 @@ mv nucl_gb.accession2taxid accession2taxid_files
 mkdir virus_seqs other_seqs synthetic_chimeric_seqs
 
 # Generate the converted accession file using a python script. All described with the -h option specified. 
-python $python_bin"/convert_blast.py" --accession "accession2taxid_files/nucl_gb.accession2taxid" --nodes "new_taxdump/nodes.dmp"
+python3 -u $python_bin"/convert_blast.py" --accession "accession2taxid_files/nucl_gb.accession2taxid" --nodes "new_taxdump/nodes.dmp"
 echo "Generated converted accession file: converted_accession_file.txt"
 
 # Pull out the identifier from the converted accession file, which will be used later to get the
@@ -54,7 +54,9 @@ grep "VIRUS" $file >> virus_seqs/virus_id.txt
 grep "PHAGE" $file >> virus_seqs/virus_id.txt
 grep "SYNTHETIC" $file >> synthetic_chimeric_seqs/synthetic_chimeric_id.txt
 cat $file | grep -v "PHAGE" | grep -v "VIRUS" | grep -v "SYNTHETIC" >> other_seqs/other_id.txt
+echo "Compressing converted accession file..."
 tar -zcvf ${file%.txt}".tar.gz" $file && rm -f $file
+echo "DONE!!!"
 
 # Make some variables for the locations of the new created directories.
 other_path=$(dirname $nt_path)"/other_seqs"
@@ -64,36 +66,36 @@ virus_path=$(dirname $nt_path)"/virus_seqs"
 # fasta file. This is run in each sub-directory.
 for i in $(ls -d */ | grep _seqs); do
 	cd $i
-	python3 $python_bin"/pull_seqs.py" --fasta $nt_path"/nt.fasta" --accession ${i%_seqs}"_id.txt" --output ${i%_seqs}".fasta"
+	python3 -u $python_bin"/pull_seqs.py" --fasta $nt_path"/nt.fasta" --accession ${i%_seqs/}"_id.txt" --output ${i%_seqs/}".fasta"
 	cd $(dirname $nt_path)
 done
-
 # Compress nt_db as it is no longer needed.
 echo "Compressing nt_db....."
-tar -zcvf $nt_path".tar.gz" $nt_path && rm -rf $nt_path
-
+tar -zcvf $(basename $nt_path)".tar.gz" --directory=$(dirname $nt_path) $(basename $nt_path) && rm -rf $nt_path
 # Build a blast db of other seqs and viral seqs. 
 echo "Building a blastdb of other seqs...."
 makeblastdb -in $other_path"/other.fasta" -out $other_path"/db_other" -dbtype nucl
 echo "Building a blastdb of viral seqs...."
-makeblastdb -in $virus_path"/phage.fasta" -out $virus_path"/db_virus" -dbtype nucl
+makeblastdb -in $virus_path"/virus.fasta" -out $virus_path"/db_virus" -dbtype nucl
 echo "Built blastdbs"
 
-## Blast other seqs against viral db.
+### Blast other seqs against viral db.
 blast_output=$(dirname $nt_path)"/blast_results"
 mkdir -p $blast_output
-blastn -query $other_path"/other.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $virus_path"/db_virus" -out $blast_output"/other_in_viruses.txt" -outfmt 6
+blastn -query $other_path"/other.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $virus_path"/db_virus" -out $blast_output"/other_in_virus,txt" -outfmt "6 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen"
 
-# Compress all the subdirectories as they're no longer needed.
-tar -zcvf $other_path".tar.gz" $other_path && rm -rf $other_path
-tar -zcvf $virus_path".tar.gz" $virus_path && rm -rf $virus_path
-
-
+# Compress subdirectories fastas as they're no longer needed.
+tar -zcvf "other.fasta.tar.gz" -C $other_path other.fasta && rm -rf $other_path"/other.fasta"
+tar -zcvf "virus.fasta.tar.gz" -C $virus_path virus.fasta && rm -rf $virus_path"/virus.fasta"
 #	#	#	#	#	#	#	#	#
 
 #	#	!	N	R	!	#	#	#
 
 #	#	#	#	#	#	#	#	#	
+
+# If youre interested in the protein stuff remove the exit statement.  
+exit 1
+#
 
 echo "Finished with nt, now processing nr..."
 # Go to nr directory and download the nr database and unzip it.
@@ -114,7 +116,7 @@ gunzip prot.accession2taxid.gz
 mv prot.accession2taxid accession2taxid_files
 
 # Generate the converted accession file.
-python $python_bin"/convert_blast.py" --accession accession2taxid_files/prot.accession2taxid --nodes new_taxdump/nodes.dmp
+python3 -u $python_bin"/convert_blast.py" --accession accession2taxid_files/prot.accession2taxid --nodes new_taxdump/nodes.dmp
 mv $file nr_converted_accession_file.txt
 file=nr_converted_accession_file.txt
 
@@ -126,18 +128,18 @@ cat $file | grep -v "VIRUS" | grep -v "PHAGE" | grep -v "SYNTHETIC" >> nr_other_
 tar -zcvf $file".tar.gz" $file && rm -f $file
 
 # Make vars of above paths
-nr_other_path=$(basename $nr_path)"/nr_other_seqs"
-nr_virus_path=$(basename $nr_path)"/nr_virus_seqs"
+nr_other_path=$(dirname $nr_path)"/nr_other_seqs"
+nr_virus_path=$(dirname $nr_path)"/nr_virus_seqs"
 
 #Pull out the sequences from the big fasta file in each subdir
-for i in $(ls nr_*_seqs); do
+for i in $(ls -d */ | grep nr_*_seqs); do
 	cd $i
-	python3 $python_bin"/pull_seqs.py" --fasta $nr_path"/nr.fasta" --accession *_id.txt --output ${i%_seqs}".fasta"
+	python3 -u $python_bin"/pull_seqs.py" --fasta $nr_path"/nr.fasta" --accession *_id.txt --output ${i%_seqs/}".fasta"
 	cd $(dirname $nr_path)
 done
 
 # Compress the nr db
-tar -zcvf $nr_path".tar.gz" $nr_path && rm -rf $nr_path
+tar -zcvf $(basename $nr_path)".tar.gz" -C $(dirname $nr_path) $(basename $nr_path) && rm -rf $nr_path
 
 # Build prot databases.
 echo "Building prot db: other seqs"
@@ -145,11 +147,7 @@ makeblastdb -in $nr_other_path"/nr_other.fasta" -out $nr_other_path"/db_other" -
 echo "Building prot db: viral seqs"
 makeblastdb -in $nr_virus_path"/nr_virus.fasta" -out $nr_virus_path"/db_virus" -dbtype prot
 
-# Blast other seqs against viral db
-blastn -query $nr_other_path"/nr_other.fasta" -evalue 1e-5 -num_alignments 1 -num_threads 12 -db $nr_virus_path"/db_virus" -out $blast_output"/nr_other_in_virus.txt" -outfmt 6
-
-
-# Compress the subdirectories
-tar -zcvf $nr_virus_path".tar.gz" $nr_virus_path && rm -rf $nr_virus_path
-tar -zcvf $nr_other_parh".tar.gz" $nr_other_path && rm -rf $nr_other_path
-
+## Compress the subdirectories
+tar -zcvf "nr_virus.fasta.tar.gz" -C $nr_virus_path nr_virus.fasta && rm -rf $nr_virus_path"/nr_virus.fasta"
+tar -zcvf "nr_other.fasta.tar.gz" -C $nr_other_path nr_other.fasta && rm -rf $nr_other_path"/nr_other.fasta
+###
