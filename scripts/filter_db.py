@@ -65,5 +65,5 @@ with open(args.input) as f:
     data = csv.reader(f, delimiter="\t")
     next(data, None)
     for line in data:
-        if float(line[2]) >= percent and line[-2] not in subject_division and line[14] == retro:
+        if float(line[2]) >= percent and line[21] not in subject_division and line[14] == retro:
             print("\t".join(line),file=out_file)

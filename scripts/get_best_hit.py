@@ -15,7 +15,7 @@ for f in glob.glob('*.txt'):
                   'Gap_Open','Query_start','Query_end','Subject_start','Subject_end',
                   'Evalue','Bitscore','Query_length','Subject_length','Retro','Query_accession',
                   'Query_taxid','Query_division','Query_html','Subject_accession',
-                  'Subject_taxid','Subject_division','Subject_html']
+                  'Subject_taxid','Subject_division','Subject_html', 'Orto_id']
 
     # Duplicate df
     # All the viruses which appear more than once
@@ -37,7 +37,7 @@ for f in glob.glob('*.txt'):
         frame = duplicates.loc[duplicates['Subject'] == i]
 
         # This is the index of the row in the df which has the highest % alignment
-        max_prct = frame['Percentage'].idxmax()
+        max_prct = frame['Alignment_length'].idxmax()
 
         # Use the above value to subset the dataframe giving a new dataframe
         best_frame = (frame.loc[[max_prct]])
@@ -60,7 +60,7 @@ for f in glob.glob('*.txt'):
     # Get first cell from specified column.
     file_name = worst_df.iloc[0]['Query'].split("|")[5]
 
-    if 'retro' in file:
+    if 'noretro' not in file:
         file_name = file_name + '_retro'
 
     # Write to files, dont print index.
