@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php
-$dbcon = mysqli_connect("localhost","root","root","virus");
+$dbcon = mysqli_connect("127.0.0.1","hiveuser","blastHIVE","hive");
 function get_rows($best, $worst){
 	global $dbcon;
 	$best_nums = mysqli_query($dbcon, "SELECT COUNT(*) FROM `$best`");

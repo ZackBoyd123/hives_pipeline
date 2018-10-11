@@ -10,6 +10,7 @@ mysql_password=root
 $python_bin"/make_db.py" --retro $retro_file --input $blast_data --output converted_results.txt
 
 #Probably want to put Richard\s script here v
+java -jar HiveAddTaxIds.jar sorted_nodes_paths.txt converted_results.txt
 
 # Subset into retro/non-retro viruses above 95 % alignment
 $python_bin"/filter_db.py" --percent 95 --retro --input converted_results.txt --output 95_Retro.txt

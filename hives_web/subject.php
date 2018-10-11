@@ -24,7 +24,7 @@
 
 <body>
 	<?php
-		$dbcon = mysqli_connect("localhost","root","root","virus");
+		$dbcon = mysqli_connect("127.0.0.1","hiveuser","blastHIVE","hive");
 		function table_head(){
 				echo "<div class=\"container-fluid\"><div class=\"tablediv\">
 						<table id=\"subjectTable\" width=\"100%\" class=\"display cell-border\">
